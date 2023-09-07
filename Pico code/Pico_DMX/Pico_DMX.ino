@@ -50,7 +50,7 @@ void loop() {
 
     //No. of transmissions
     uint8_t num_of_transmissions = NUM_CHANNELS/56;
-    if (NUM_CHANNELS % 56 > 0) {
+    if (NUM_CHANNELS % 56 > 0 && NUM_CHANNELS > 56 ) {
       num_of_transmissions += 1;
     }
 
