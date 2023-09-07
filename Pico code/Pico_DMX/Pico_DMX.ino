@@ -56,8 +56,8 @@ void loop() {
 
     //For each part of the array transmit data
     for (uint8_t i = 0; i <= num_of_transmissions; i++) {
-      uart_buffer[0] = i;
-      uart_buffer[1] = num_of_transmissions;
+      uart_buffer[0] = i+1;
+      uart_buffer[1] = num_of_transmissions+1;
       uint8_t offset = i * 56;
       memcpy(&uart_buffer[2], &buffer_to_send[offset], sizeof(uart_buffer)-2);
       //now send that binch in blocking mode before sending again.
