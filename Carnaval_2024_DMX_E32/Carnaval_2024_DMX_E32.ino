@@ -5,9 +5,9 @@ DmxInput dmxInput;
 #define START_CHANNEL 0
 #define NUM_CHANNELS 512
 
-#define CHANNEL_OFFSET 477 //36 channels remaining
+#define CHANNEL_OFFSET 507
 
-#define BAUD_RATE 115200//19200
+#define BAUD_RATE 19200
 
 #define RE1 2//228
 #define DE1 3//527
@@ -15,21 +15,9 @@ DmxInput dmxInput;
 #define RE2 21//276
 #define DE2 20//267
 
-//Grootte is 513, maar 1e is altijd leeg.
-volatile uint8_t dmx_buffer[DMXINPUT_BUFFER_SIZE(START_CHANNEL, NUM_CHANNELS)];
+volatile uint8_t buffer[DMXINPUT_BUFFER_SIZE(START_CHANNEL, NUM_CHANNELS)];
 
-uint8_t uart_buffer[36];
-
-// Interrupt wanneer DMX data wordt ontvangen...
-void __isr dmxDataReceived(DmxInput* dmxInput) {
-
-  //Do something...
-  //memcpy(&buffer_to_send, &dmx_buffer, sizeof(dmx_buffer));
-  //maybe do nothing?
-  //Toggle LED
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-
-}
+uint8_t uart_buffer[6];
 
 void setup()
 {
@@ -51,32 +39,28 @@ void setup()
 
     // Setup the onboard LED so that we can blink when we receives packets
     pinMode(LED_BUILTIN, OUTPUT);
-
-    //dmxInput.read_async(dmx_buffer, dmxDataReceived);
-    //dmxInput.read_async(dmx_buffer);
 }
 
 void loop()
 {
-  dmxInput.read(dmx_buffer);
-  for (uint i = CHANNEL_OFFSET; i < sizeof(dmx_buffer); i++)
+    // Wait for next DMX packet
+    dmxInput.read(buffer);
+
+    for (uint i = CHANNEL_OFFSET; i < sizeof(buffer); i++)
     {
-      uart_buffer[i-CHANNEL_OFFSET] = dmx_buffer[i];
-      //USB Debug
-      //Serial.print(uart_buffer[i-CHANNEL_OFFSET]);
-      //Serial.print(dmx_buffer[i]);
+        
+        uart_buffer[i-CHANNEL_OFFSET] = buffer[i];
+
+        Serial.print(uart_buffer[i-CHANNEL_OFFSET]);
+
     }
-  //USB debug
-  //Serial.println("");
 
-  //digitalWrite(LED_BUILTIN, HIGH);
+    Serial.println("");
 
-  //Actual sending through MAX485
-  Serial2.write(uart_buffer, sizeof(uart_buffer));
+    Serial2.write(uart_buffer, sizeof(uart_buffer));
 
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-
-  delay(44); //Verander baudrate van E32 zender... Dit is te langzaaam.
-  // Blink the LED to indicate that a packet was received
-  //digitalWrite(LED_BUILTIN, LOW);
+    // Blink the LED to indicate that a packet was received
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(10);
+    digitalWrite(LED_BUILTIN, LOW);
 }
