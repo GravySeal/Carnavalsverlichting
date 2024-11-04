@@ -1,13 +1,12 @@
 #include <Arduino.h>
 #include "DmxInput.h"
-DmxInput dmxInput;
 
 #define START_CHANNEL 0
 #define NUM_CHANNELS 512
 
-#define CHANNEL_OFFSET 507
+#define SENDER_NUMBER 0
 
-#define BAUD_RATE 19200
+#define BAUD_RATE 115200
 
 #define RE1 2//228
 #define DE1 3//527
@@ -15,9 +14,11 @@ DmxInput dmxInput;
 #define RE2 21//276
 #define DE2 20//267
 
+DmxInput dmxInput;
+
 volatile uint8_t buffer[DMXINPUT_BUFFER_SIZE(START_CHANNEL, NUM_CHANNELS)];
 
-uint8_t uart_buffer[6];
+uint8_t uart_buffer[54]; //Set ebyte to transparent transmission with 115200 baud uart speed
 
 void setup()
 {
@@ -46,21 +47,17 @@ void loop()
     // Wait for next DMX packet
     dmxInput.read(buffer);
 
-    for (uint i = CHANNEL_OFFSET; i < sizeof(buffer); i++)
+    for (uint i = 0; i < 54; i++)
     {
-        
-        uart_buffer[i-CHANNEL_OFFSET] = buffer[i];
-
-        Serial.print(uart_buffer[i-CHANNEL_OFFSET]);
-
+        uart_buffer[i] = buffer[54 * SENDER_NUMBER + i]; //54*0 = 0 dus eerste 54 DMX kanalen, 54*1 = 54 dus 54 tot 108 etc. etc.
+        Serial.print(uart_buffer[i]);
     }
 
     Serial.println("");
-
-    Serial2.write(uart_buffer, sizeof(uart_buffer));
+    Serial2.write(uart_buffer, 54);
 
     // Blink the LED to indicate that a packet was received
     digitalWrite(LED_BUILTIN, HIGH);
-    delay(10);
+    delay(60);
     digitalWrite(LED_BUILTIN, LOW);
 }
